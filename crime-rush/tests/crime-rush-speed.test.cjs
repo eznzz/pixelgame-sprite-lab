@@ -36,3 +36,17 @@ const assert=require('node:assert/strict');const fs=require('node:fs');const vm=
  assert.equal(n,23);assert.throws(()=>C.validate({...C.get('sputnik','rear'),axle:[.7,.95,.2,.95]}));assert.throws(()=>C.validate({...C.get('sputnik','rear'),angle:NaN}));
  const f=P.select(1,k=>['rear','rear-05','rear-10'].includes(k),{max:20,angleFor:(role,a)=>role==='rear-05'?2:a});assert.equal(f.upper,'rear-05');assert.equal(f.mix,.5);
  console.log('Individual vehicle calibration: 23 inspected rear frames; mirrored axle midpoint, validation and adjusted key angles OK');}
+
+{const C=require('../engine/world/road-curvature.js'),L=require('../../crime-rush-library/presets/road-layout.js');let checks=0,maxWidthError=0,maxDerivativeError=0;
+ for(const profile of ['straight','left','right','s'])for(const strength of [0,.14,.24]){
+ const c=C.config({profile,strength});for(let world=0;world<=30000;world+=30){const a=C.sample(world,c),n=C.sample(world+.1,c),m=C.sample(world-.1,c),f=C.camera(world,c,.1);
+ assert.ok(Math.abs(a.slope)<=strength+1e-10);maxDerivativeError=Math.max(maxDerivativeError,Math.abs((n.x-m.x)/.2-a.slope));assert.ok(Math.abs(C.sample(world+C.period,c).x-a.x)<1e-9);
+ for(const z of [0,28,100,500,1000,1800,9600]){const g=L.at(world+z),p=C.project(f,z,864,267.84,432,g.anchor),q=1/(1+z/155);assert.equal(p.q,q);assert.equal(p.y,267.84+(432-267.84)*q);assert.equal(p.half,600*q);
+ maxWidthError=Math.max(maxWidthError,Math.abs((p.center+p.half*(g.inner+.75))-(p.center+p.half*(g.inner+.25))-300*q));
+ assert.ok(p.center-p.half*g.outer<=p.center-p.half*g.inner&&p.center-p.half*g.inner<=p.center+p.half*g.inner&&p.center+p.half*g.inner<=p.center+p.half*g.outer);checks++;}}}
+ assert.equal(checks,84084);assert.ok(maxWidthError<1e-9&&maxDerivativeError<1e-6);
+ const straight=C.camera(3000,C.config({profile:'straight',follow:0}),0);assert.equal(C.project(straight,500,864,267.84,432).center,432);assert.equal(C.vanishing(straight,864),432);
+ const mirror=z=>['left','right'].map(profile=>C.project(C.camera(1600,C.config({profile}),0),z,864,267.84,432).center);for(const z of [0,28,500,1800,9600])assert.ok(Math.abs(mirror(z).reduce((a,b)=>a+b,0)-864)<1e-9);
+ function follow(hz){let x=0;for(let i=0;i<hz;i++)x=C.follow(x,1,1/hz);return x;}assert.ok(Math.abs(follow(30)-follow(60))<1e-12);assert.ok(follow(60)<.22);
+ const f=C.camera(3000,C.defaults,0);assert.ok(Math.abs(C.project(f,1e10,864,267.84,432).center-C.vanishing(f,864))<1e-4);
+ console.log('Road geometry: '+checks+' cross sections; max width error '+maxWidthError+' px; max derivative error '+maxDerivativeError);}
