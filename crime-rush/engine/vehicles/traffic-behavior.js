@@ -64,6 +64,7 @@ function passingContact(car,prev,pp,oldPP){
  const touching=horizontalOverlap(pp,current)||horizontalOverlap(oldPP,previous)||(Math.min(pp.left- current.right,oldPP.left-previous.right)<0&&Math.min(current.left-pp.right,previous.left-oldPP.right)<0);
  const sideMoved=window.CrimeRushDrivingLab?.mission?.()?Math.abs(pp.lane-oldPP.lane)>.00001:Math.abs(pp.px-oldPP.px)>.001;
  const approach=sideMoved&&Math.abs(dx)<Math.abs(oldX)+.01;
+ if(window.CrimeRushDrivingLab?.mission?.()&&car.z<prev&&Math.min(prev,car.z)<=pp.z+18&&Math.max(prev,car.z)>=pp.z-18&&touching)return true;
  return approach&&touching&&Math.abs(p.y-PLAYER_GROUND_Y)<32&&Math.abs(car.z-pp.z)<45;
 }
 function finishDamageRun(){if(gameOver||!CrimeRushDamage.reason())return;window.PreviewAudio?.play('over');gameOver=true;paused=true;pause.textContent='Продолжить';driveVelocity=0;syncSpeed();}
