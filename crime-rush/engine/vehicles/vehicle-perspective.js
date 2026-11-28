@@ -9,8 +9,8 @@
   return {bearing,heading,angle:bearing+heading};
  }
  const rear=[['rear',0],['rear-05',5],['rear-06',6],['rear-10',10],['rear-15',15],['rear-20',20],['rear-30',30],['rear-40',40]],front=[['front',0],['front-06',6],['front-15',15],['front-quarter',35]];
- function select(angle,available,{prefix='',opposite=false,max=40,warp=.65}={}){
-  const list=(opposite?front:rear).filter(([role,a])=>a<=max&&available(prefix+role));if(!list.length)return null;
+ function select(angle,available,{prefix='',opposite=false,max=40,warp=.65,angleFor=null}={}){
+  const list=(opposite?front:rear).filter(([role,a])=>a<=max&&available(prefix+role)).map(([role,a])=>[role,angleFor?.(prefix+role,a)??a]).sort((a,b)=>a[1]-b[1]);if(!list.length)return null;
   const target=clamp(Math.abs(angle),0,list.at(-1)[1]),sign=angle<0?-1:1;
   let lower=list[0],upper=list.at(-1);for(const f of list){if(f[1]<=target)lower=f;if(f[1]>=target){upper=f;break;}}
   const mix=upper[1]===lower[1]?0:(target-lower[1])/(upper[1]-lower[1]),key=mix<=.5?lower:upper,delta=sign*(target-key[1]);
@@ -26,10 +26,10 @@
   return {left:left/w,right:(right+1)/w,top:top/h,bottom:(bottom+1)/h,anchor:hi>=lo?(lo+hi+1)/(2*w):(left+right+1)/(2*w),width:(right-left+1)/w,height:bh/h};
  }
  function layout(frame,asset,reference,lower,upper,px,py,baseHeight){
-  const a=asset.measure,r=reference.measure,l=lower.measure,u=upper.measure;
+  const a=asset.measure,r=reference.measure;const axle=asset.calibration?.axle,anchorX=axle?(axle[0]+axle[2])/2:a.anchor,anchorY=axle?(axle[1]+axle[3])/2:a.bottom;
   const visibleHeight=baseHeight*r.height,aspect=v=>v.measure.width*v.width/(v.measure.height*v.height),visibleWidth=visibleHeight*(aspect(lower)+(aspect(upper)-aspect(lower))*frame.mix);
   const w=visibleWidth/Math.max(.001,a.width),h=visibleHeight/Math.max(.001,a.height);
-  return {x:px-a.anchor*w,y:py-a.bottom*h,w,h,visibleWidth,visibleHeight,anchorX:a.anchor,anchorY:a.bottom,footprint:visibleHeight*aspect(reference)};
+  return {x:px-anchorX*w,y:py-anchorY*h,w,h,visibleWidth,visibleHeight,anchorX,anchorY,footprint:visibleHeight*aspect(reference),axle,calibration:asset.calibration??null};
  }
  function point(frame,rect,px,py,u,v){const x=rect.x+u*rect.w,y=rect.y+v*rect.h;return {x:(frame.flip?2*px-x:x)+(frame.shear||0)*(y-py),y};}
  const api={angles,select,measure,layout,point,roadUnit};if(typeof module!=='undefined')module.exports=api;else root.CrimeRushVehiclePerspective=api;
