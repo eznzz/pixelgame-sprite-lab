@@ -31,7 +31,7 @@ function racing(dt=0){
   const w=asset.width*height/asset.height,bob=player.playerLoad?0:DriveMotion.bounce(distance,driveVelocity,height,0);
   DriveExhaust.update(dt,driveVelocity,drivePressed('ArrowUp')&&!braking&&!document.getElementById('settingsDialog').open,player,pos,Math.round(poseLayout?.x??(pos-w/2)),Math.round(poseLayout?poseLayout.y+bob:groundY-height+bob+SpriteLibrary.driveGroundOffset(I,player.name,height)),Math.round(poseLayout?.w??w),Math.round(poseLayout?.h??height),groundY,poseLayout?.calibration);
  }
- DriveExhaust.draw(c);if(poseLayout&&window.CrimeRushDrivingLab?.overlay())CrimeRushVehiclePose.drawOverlay(c,player,poseLayout,pos,groundY);c.restore();},4);
+ DriveExhaust.draw(c);if(poseLayout&&window.CrimeRushDrivingLab?.overlay?.())CrimeRushVehiclePose.drawOverlay(c,player,poseLayout,pos,groundY);c.restore();},4);
  // Painter's algorithm: every upright object shares one world-depth queue.
  const paintStart=performance.now();layers.sort((a,b)=>b.z-a.z||a.priority-b.priority);
  c.save();c.imageSmoothingEnabled=false;
