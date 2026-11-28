@@ -21,18 +21,18 @@ window.SpriteLibrary = (()=>{
  // A resource is published only after a successful load. Concurrent requests share
  // one promise; failures remain retryable. Existing images are never replaced mid-frame.
  const pendingByStore=new WeakMap();
- function loadAssets(assets,images,keys=Object.keys(assets),priority='auto'){
+ async function loadAssets(assets,images,keys=Object.keys(assets),priority='auto'){
   let pending=pendingByStore.get(images);if(!pending){pending=new Map();pendingByStore.set(images,pending);}
-  return Promise.all([...new Set(keys)].map(key=>{
+  const list=[...new Set(keys)],results=[];let cursor=0;async function worker(){while(cursor<list.length){const key=list[cursor++];results.push(await loadOne(key));}}function loadOne(key){
    if(images[key]?.naturalWidth)return Promise.resolve(null);
    if(pending.has(key))return pending.get(key);
    const urls=assets[key];if(!urls?.length)return Promise.resolve(key+': отсутствует в каталоге');
-   const task=new Promise(resolve=>{const img=new Image();let i=0;img.fetchPriority=priority;
+   const task=new Promise(resolve=>{const img=new Image();let i=0;img.fetchPriority=priority;img.decoding='async';
     img.onload=()=>{images[key]=img;resolve(null);};
     img.onerror=()=>{if(++i<urls.length)img.src=urls[i];else resolve(key+': '+urls.join(' | '));};
     img.src=urls[0];
    }).finally(()=>pending.delete(key));pending.set(key,task);return task;
-  })).then(results=>{const missing=results.filter(Boolean);if(missing.length)throw Error('Не удалось загрузить спрайты: '+missing.join(', '));});
+  }await Promise.all(Array.from({length:Math.min(4,list.length)},worker));const missing=results.filter(Boolean);if(missing.length)throw Error('Не удалось загрузить спрайты: '+missing.join(', '));
  }
  function driveManifest(){
   const cars=Object.entries(catalog.vehicles).filter(([id])=>!id.startsWith('traffic-')).map(([id,f])=>({id,f,modern:['rear',...angleRoles.filter(r=>r!=='rear-05')].every(r=>f[r])})).filter(c=>c.modern||legacyRoles.every(r=>c.f[r]));

@@ -110,25 +110,30 @@ window.RoadsideObjects=(()=>{
   for(let i=points.length-1;i>=0;i--){const p=points[i];if(p.x+poleWidth*.5*p.q<0||p.x-poleWidth*.5*p.q>W)continue;queue(p.z,()=>mistSprite(c,poleArt,p.x,p.y,poleWidth*p.q,POLE_HEIGHT*p.q,visibility(p.q,p.z,depth),p.z,window.CrimeRushAtmosphere?.get()?CrimeRushSkyModel.poleFade(p.z,depth):1),1)}
 
  }
+ // Sample the rail in screen space, not at a fixed world-unit interval.
+ // Preserve the original texture coordinates and the painter ordering.
  function queueGuardrail(c,a,project,world,distance,limit,side,lane,length,W,queue,height=64,near=0){
   const start=world-distance-length/2,end=start+length,from=Math.max(near,start),to=Math.min(limit,end);
   if(to<=from||DriveCrossroads.intersects(world-length/2,world+length/2,90))return;
-  const mobile=matchMedia('(any-pointer:coarse), (hover:none)').matches;const count=Math.max(1,Math.ceil((to-from)/(mobile&&Math.max(0,from)>180?24:12)));
-  for(let i=0;i<count;i++){
-   const z0=from+(to-from)*i/count,z1=from+(to-from)*(i+1)/count,mid=(z0+z1)/2,p=project(z0),q=project(z1);
-   const x0=p.center+side*p.half*lane,x1=q.center+side*q.half*lane;
-   if(Math.max(x0,x1)<-2||Math.min(x0,x1)>W+2)continue;
-   const top0=p.y-height*p.q,top1=q.y-height*q.q,alpha=Math.max(0,Math.min(1,(limit-mid)/300));
-   if(alpha<=0||Math.abs(x1-x0)<.35)continue;
+  const quality=window.CrimeRushPerformance?.detail?.()??1;
+  const point=z=>{const p=project(z);return {z,x:p.center+side*p.half*lane,y:p.y,top:p.y-height*p.q,h:height*p.q};};
+  const emit=(p,q)=>{const mid=(p.z+q.z)/2,alpha=Math.max(0,Math.min(1,(limit-mid)/300));if(alpha<=0||Math.abs(q.x-p.x)<.35||Math.max(p.x,q.x)<-2||Math.min(p.x,q.x)>W+2)return;
+   const u0=(p.z-start)/length,u1=(q.z-start)/length,lo=side<0?u0:1-u1,hi=side<0?u1:1-u0;
+   window.CrimeRushPerformance?.countRail?.();
    queue(mid,()=>{const tex=fogArt(a,groundMist(Math.max(0,mid),project),'ground'),tw=tex.width,th=tex.height;
-    const u0=(z0-start)/length,u1=(z1-start)/length,lo=side<0?u0:1-u1,hi=side<0?u1:1-u0;
-    // Clip to the true perspective quadrilateral; sample a narrow section of the approved texture.
-    c.save();c.globalAlpha=alpha;c.imageSmoothingEnabled=false;if(Math.abs(p.q-q.q)*height>.75){c.beginPath();c.moveTo(x0,top0);c.lineTo(x1,top1);c.lineTo(x1,q.y);c.lineTo(x0,p.y);c.closePath();c.clip();}
-    const left=x0<x1,ax=left?x0:x1,ay=left?top0:top1,bx=left?x1:x0,by=left?top1:top0;
-    c.transform(bx-ax,by-ay,0,Math.max(p.q,q.q)*height,ax,ay);
+    c.save();c.globalAlpha=alpha;c.imageSmoothingEnabled=false;
+    const clipped=Math.abs(p.h-q.h)>2;if(clipped){c.beginPath();c.moveTo(p.x,p.top);c.lineTo(q.x,q.top);c.lineTo(q.x,q.y);c.lineTo(p.x,p.y);c.closePath();c.clip();}
+    const left=p.x<q.x,A=left?p:q,B=left?q:p;c.transform(B.x-A.x,B.top-A.top,0,clipped?Math.max(p.h,q.h):(p.h+q.h)/2,A.x,A.top);
     c.drawImage(tex,lo*tw,0,Math.max(.01,(hi-lo)*tw),th,0,0,1,1);c.restore();
    },2);
+  };
+  function split(p,q,level){const m=point((p.z+q.z)/2),min=Math.min(p.x,m.x,q.x),max=Math.max(p.x,m.x,q.x);if(max<-2||min>W+2)return;
+   // Perspective curvature, not distance alone, determines tessellation.
+   const dx=q.x-p.x,dy=q.top-p.top,den=dx*dx+dy*dy,t=den?Math.max(0,Math.min(1,((m.x-p.x)*dx+(m.top-p.top)*dy)/den)):0;
+   const error=Math.hypot(m.x-p.x-t*dx,m.top-p.top-t*dy);
+   if(level<7&&(max-min>24/quality||Math.abs(p.h-q.h)>4/quality||error>.65/quality)){split(p,m,level+1);split(m,q,level+1);}else emit(p,q);
   }
+  split(point(from),point(to),0);
  }
  function fence(c,project,distance,depth,W,fieldPlot,queue){
   const step=55,first=Math.floor(distance/step),last=Math.ceil((distance+depth)/step);
