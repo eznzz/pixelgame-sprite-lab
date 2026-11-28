@@ -119,11 +119,11 @@ window.RoadsideObjects=(()=>{
    const x0=p.center+side*p.half*lane,x1=q.center+side*q.half*lane;
    if(Math.max(x0,x1)<-2||Math.min(x0,x1)>W+2)continue;
    const top0=p.y-height*p.q,top1=q.y-height*q.q,alpha=Math.max(0,Math.min(1,(limit-mid)/300));
-   if(alpha<=0||Math.abs(x1-x0)<.001)continue;
+   if(alpha<=0||Math.abs(x1-x0)<.35)continue;
    queue(mid,()=>{const tex=fogArt(a,groundMist(Math.max(0,mid),project),'ground'),tw=tex.width,th=tex.height;
     const u0=(z0-start)/length,u1=(z1-start)/length,lo=side<0?u0:1-u1,hi=side<0?u1:1-u0;
     // Clip to the true perspective quadrilateral; sample a narrow section of the approved texture.
-    c.save();c.globalAlpha=alpha;c.imageSmoothingEnabled=false;c.beginPath();c.moveTo(x0,top0);c.lineTo(x1,top1);c.lineTo(x1,q.y);c.lineTo(x0,p.y);c.closePath();c.clip();
+    c.save();c.globalAlpha=alpha;c.imageSmoothingEnabled=false;if(Math.abs(p.q-q.q)*height>.75){c.beginPath();c.moveTo(x0,top0);c.lineTo(x1,top1);c.lineTo(x1,q.y);c.lineTo(x0,p.y);c.closePath();c.clip();}
     const left=x0<x1,ax=left?x0:x1,ay=left?top0:top1,bx=left?x1:x0,by=left?top1:top0;
     c.transform(bx-ax,by-ay,0,Math.max(p.q,q.q)*height,ax,ay);
     c.drawImage(tex,lo*tw,0,Math.max(.01,(hi-lo)*tw),th,0,0,1,1);c.restore();
