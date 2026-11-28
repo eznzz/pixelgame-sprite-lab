@@ -11,7 +11,8 @@
  return {x:a/k*(.72*(1-Math.cos(u))+.14*(1-Math.cos(2*u))),slope:a*(.72*Math.sin(u)+.28*Math.sin(2*u)),second:a*k*(.72*Math.cos(u)+.56*Math.cos(2*u))};}
  function follow(previous,lane,dt,c=defaults){const goal=clamp((lane-.25)*c.follow,-.22,.22);return goal+(finite(previous,0)-goal)*Math.exp(-c.followRate*clamp(finite(dt,0),0,.05));}
  function camera(world,c=defaults,lateral=0){const a=sample(world,c),b=sample(world+c.lookAhead,c),heading=c.lookAhead>0?(b.x-a.x)/c.lookAhead:a.slope;return {world,config:c,origin:a.x,heading,lateral,curvature:a.second/Math.pow(1+a.slope*a.slope,1.5),roadHeading:Math.atan(a.slope)*rad,cameraHeading:Math.atan(heading)*rad};}
- function offset(frame,z){return (sample(frame.world+z,frame.config).x-frame.origin-frame.heading*z)/roadUnit-frame.lateral;}
+ function center(s,c){const a=c.strength,u=k*s;if(c.profile==='straight'||a===0)return 0;if(c.profile==='left'||c.profile==='right')return (c.profile==='right'?1:-1)*a/k*(1-Math.cos(u));return a/k*(.72*(1-Math.cos(u))+.14*(1-Math.cos(2*u)));}
+ function offset(frame,z){return (center(frame.world+z,frame.config)-frame.origin-frame.heading*z)/roadUnit-frame.lateral;}
  function project(frame,z,width,horizon,height,anchor=0){const q=1/(1+z/155),half=600*q;return {q,half,y:horizon+(height-horizon)*q,center:width/2+half*(offset(frame,z)+anchor)};}
  function vanishing(frame,width){return width/2-600*155/roadUnit*frame.heading;}
  const api={defaults,config,sample,follow,camera,offset,project,vanishing,roadUnit,period};if(typeof module!=='undefined')module.exports=api;else root.CrimeRushRoadCurvature=api;
