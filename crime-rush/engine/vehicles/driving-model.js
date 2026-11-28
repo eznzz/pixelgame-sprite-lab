@@ -1,0 +1,13 @@
+// Experimental pure driving model. Alpha remains the default in the game.
+(function(root){
+ const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),finite=(v,d)=>Number.isFinite(v)?v:d;
+ const defaults=Object.freeze({response:7,returnRate:10,maxLateral:0.60,steeringYaw:15,perspective:0.42,warp:0.65});
+ function config(v={}){return {response:clamp(finite(v.response,defaults.response),2,16),returnRate:clamp(finite(v.returnRate,defaults.returnRate),2,20),maxLateral:clamp(finite(v.maxLateral,defaults.maxLateral),.2,1),steeringYaw:clamp(finite(v.steeringYaw,defaults.steeringYaw),0,25),perspective:clamp(finite(v.perspective,defaults.perspective),0,1),warp:clamp(finite(v.warp,defaults.warp),0,1)};}
+ function gain(kmh){const v=clamp(finite(kmh,0),0,155);return Math.min(1,v/65)*(1-.25*clamp((v-85)/70,0,1));}
+ function step(state,input,kmh,dt,settings=defaults,bounds=[-2,2]){const c=config(settings),d=clamp(finite(dt,0),0,.05),u=clamp(finite(input,0),-1,1),target=u*c.maxLateral*gain(kmh),rate=Math.abs(u)>.001?c.response:c.returnRate,old=finite(state.lateral,0),a=Math.exp(-rate*d),lateral=target+(old-target)*a,delta=target*d+(old-target)*(1-a)/rate;const lane=clamp(finite(state.lane,0)+delta,bounds[0],bounds[1]);return {lane,lateral:(lane===bounds[0]&&lateral<0||lane===bounds[1]&&lateral>0||kmh<=0)?0:lateral};}
+ // Sample the same physical lane at both depths, including median/width changes.
+ function roadAngle(project,physical,z,lane){const near=Math.max(0,z-16),far=z+32,a=project(near),b=project(far),ax=a.center+a.half*physical(near,lane),bx=b.center+b.half*physical(far,lane);return Math.atan2(bx-ax,Math.max(.01,a.y-b.y))*180/Math.PI;}
+ function yaw(previous,lateral,road,dt,settings=defaults){const c=config(settings),rest=clamp(road*c.perspective,-15,15),turn=clamp(lateral/c.maxLateral,-1,1)*c.steeringYaw,target=clamp(rest+turn,-20,20),angle=target+(finite(previous,0)-target)*Math.exp(-9*clamp(finite(dt,0),0,.05));return {angle,rest,turn,target};}
+ function frame(angle,available,settings=defaults){const c=config(settings),options=[0,5,10,15,20].filter(a=>available(a?'rear-'+String(a).padStart(2,'0'):'rear'));if(!options.length)return {name:'rear',flip:false,visualAngle:0,shear:0,keyAngle:0};const keyAngle=options.reduce((a,b)=>Math.abs(b-Math.abs(angle))<Math.abs(a-Math.abs(angle))?b:a),signed=keyAngle*(angle<0?-1:1),residual=clamp(angle-signed,-5,5);return {name:keyAngle?'rear-'+String(keyAngle).padStart(2,'0'):'rear',flip:keyAngle>0&&angle<0,visualAngle:Math.abs(angle),keyAngle,shear:clamp(-Math.tan(residual*Math.PI/180)*c.warp,-.06,.06)};}
+ const api={defaults,config,gain,step,roadAngle,yaw,frame};if(typeof module!=='undefined')module.exports=api;else root.CrimeRushDrivingModel=api;
+})(typeof window!=='undefined'?window:globalThis);
