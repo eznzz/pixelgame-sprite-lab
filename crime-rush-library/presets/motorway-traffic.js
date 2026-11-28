@@ -19,7 +19,7 @@ const g=L.at(world),l=lane(world,index,direction);
 // The third stream merges into lane two at tapers. Suppress spawn outside full-width
 // section using a gradual alpha ramp; no collision/gameplay is driven by preview cars.
 const alpha=index===2?smooth(g.extra/.5)*smooth(Math.abs(l)-g.inner-.75>.001?Math.abs(l)-g.inner-.75:0)*4:1;
-if(alpha<=.005)continue;result.push({id:direction+':'+index+':'+k,world,z,lane:l,opposite:direction<0,opacity:Math.min(1,alpha),model:(Math.abs(k+index)%2)?'traffic-01':'traffic-02'});}
+if(alpha<=.005)continue;result.push({id:direction+':'+index+':'+k,world,z,worldSpeed:speed,lane:l,opposite:direction<0,opacity:Math.min(1,alpha),model:(Math.abs(k+index)%2)?'traffic-01':'traffic-02'});}
 }return result;}
 const api=Object.freeze({lane,bounds,preview});if(typeof module!=='undefined')module.exports=api;else root.CrimeRushMotorwayTraffic=api;
 })(typeof window!=='undefined'?window:globalThis);
