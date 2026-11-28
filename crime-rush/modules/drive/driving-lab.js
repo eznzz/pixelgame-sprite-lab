@@ -3,7 +3,7 @@
 const M=CrimeRushDrivingModel,P=CrimeRushVehiclePerspective;let geometry={bearing:0,heading:0};let mode='alpha',settings=M.config(),state=null,pose={angle:0,rest:0,turn:0,target:0},lastX=null;
 function physical(z,lane){const g=routeRoadGeometry(distance+Math.max(0,z));return motorwayLabActive()?lane+Math.sign(lane)*g.inner:lane;}
 function logical(z,lane){const g=routeRoadGeometry(distance+Math.max(0,z));return motorwayLabActive()?Math.sign(lane)*Math.max(0,Math.abs(lane)-g.inner):lane;}
-function reset(){state=null;lastX=null;pose={angle:visualYaw||0,rest:0,turn:0,target:0};steer=0;steerInput=0;updateSteeringHold(0,0);}
+function reset(){geometry={bearing:0,heading:0};state=null;lastX=null;pose={angle:visualYaw||0,rest:0,turn:0,target:0};steer=0;steerInput=0;updateSteeringHold(0,0);}
 function configure(input={}){const next=input.mode==='experimental'?'experimental':'alpha';settings=M.config(input);if(mode!==next){if(mode==='experimental')visualYaw=pose.angle;mode=next;reset();}return snapshot();}
 function update(input,dt,velocity){const z=playerDepth(),p=project(z),g=routeRoadGeometry(distance+z),kmh=CrimeRushSpeed.toDisplaySpeed(velocity),two=trafficMode.value==='two',divided=motorwayLabActive()&&g.level>0,half=playerTrafficPosition().halfWidth;
 const min=divided?g.inner+half:two?.02+half:-.97+half,max=divided?g.outer-half:.97-half;
