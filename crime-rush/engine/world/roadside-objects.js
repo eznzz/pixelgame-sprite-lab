@@ -113,7 +113,7 @@ window.RoadsideObjects=(()=>{
  function queueGuardrail(c,a,project,world,distance,limit,side,lane,length,W,queue,height=64,near=0){
   const start=world-distance-length/2,end=start+length,from=Math.max(near,start),to=Math.min(limit,end);
   if(to<=from||DriveCrossroads.intersects(world-length/2,world+length/2,90))return;
-  const count=Math.max(1,Math.ceil((to-from)/12));
+  const mobile=matchMedia('(any-pointer:coarse), (hover:none)').matches;const count=Math.max(1,Math.ceil((to-from)/(mobile&&Math.max(0,from)>180?24:12)));
   for(let i=0;i<count;i++){
    const z0=from+(to-from)*i/count,z1=from+(to-from)*(i+1)/count,mid=(z0+z1)/2,p=project(z0),q=project(z1);
    const x0=p.center+side*p.half*lane,x1=q.center+side*q.half*lane;
