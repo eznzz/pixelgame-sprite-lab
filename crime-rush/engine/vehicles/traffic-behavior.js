@@ -62,7 +62,7 @@ function passingContact(car,prev,pp,oldPP){
  const dx=p.x-pp.px,oldX=passingProjection(prev,lane).x-oldPP.px;
  const current=trafficCollisionBounds(car,car.z),previous=trafficCollisionBounds(car,prev);
  const touching=horizontalOverlap(pp,current)||horizontalOverlap(oldPP,previous)||(Math.min(pp.left- current.right,oldPP.left-previous.right)<0&&Math.min(current.left-pp.right,previous.left-oldPP.right)<0);
- const sideMoved=Math.abs(pp.px-oldPP.px)>.001;
+ const sideMoved=window.CrimeRushDrivingLab?.mission?.()?Math.abs(pp.lane-oldPP.lane)>.00001:Math.abs(pp.px-oldPP.px)>.001;
  const approach=sideMoved&&Math.abs(dx)<Math.abs(oldX)+.01;
  return approach&&touching&&Math.abs(p.y-PLAYER_GROUND_Y)<32&&Math.abs(car.z-pp.z)<45;
 }
