@@ -42,7 +42,7 @@ window.DriveTraffic=(()=>{
    cooldown=Math.max(0,cooldown-dt);let result=null;
    const factor=Math.max(80,Math.min(150,ratio))/100;
    for(const car of cars){
-    car.cruiseSpeed??=cruise(random);const closing=(Math.max(0,velocity)+(car.cruiseSpeed??85)*factor)*3;const prev=car.z;car.z-=closing*dt*avoid(car);
+    car.cruiseSpeed??=cruise(random);const closing=(Math.max(0,velocity)+(car.cruiseSpeed??85)*factor)*3;const prev=car.z,avoidance=avoid(car);if(window.CrimeRushDrivingLab?.mission?.()){car.motionSpeed=(car.cruiseSpeed??85)*factor*avoidance;car.z-=(Math.max(0,velocity)+car.motionSpeed)*3*dt;}else car.z-=closing*dt*avoidance;
     // Swept crossing of the player's collision plane, even at maximum closing speed.
     if(car.model&&!car.hit&&prev>=playerZ-18&&car.z<=playerZ+18&&overlaps(car.lane+car.offset,car)){
      car.hit=true;if(cooldown===0){cooldown=.65;result=car;}
@@ -89,10 +89,11 @@ window.DriveTraffic=(()=>{
     // Active cars are never deleted when the player changes lanes.
     // Only a new approach is held back in an occupied lane.
     const prev=car.z;
-    const delta=(advance>0&&car.z<playerZ+25?Math.min(advance,95*dt):advance)*avoid(car);
+    const avoidance=avoid(car),relative=window.CrimeRushDrivingLab?.mission?.()?(speedFor(car)*avoidance-playerSpeed)*3*dt:advance;const delta=(relative>0&&car.z<playerZ+25?Math.min(relative,95*dt):relative)*(window.CrimeRushDrivingLab?.mission?.()?1:avoidance);
     // Hold a rear car short of the player until the player clears its lane.
     if(delta>0&&blocked&&!car.hit&&car.z<playerZ-45)car.z=Math.min(car.z+delta,playerZ-45);
     else car.z+=delta;
+    if(window.CrimeRushDrivingLab?.mission?.())car.motionSpeed=dt>0?Math.max(0,playerSpeed+(car.z-prev)/(3*dt)):speedFor(car);
     if(!car.hit&&contact(car,prev)){
      car.hit=true;
      const direction=car.lane+car.offset>=playerLane?-1:1;

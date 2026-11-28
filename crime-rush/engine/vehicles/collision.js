@@ -27,8 +27,12 @@ function trafficCollisionBounds(car,z){
  const lane=car.lane+(car.offset||0),p=car.opposite?project(z):passingProjection(z,lane);
  const frame=car.opposite?DriveTraffic.frameFor(car.model,DriveTraffic.perspective(project,z,lane),trafficAvailable,true):DriveTraffic.sameDirectionFrame(car.model,car.lane+(car.offset||0),trafficAvailable);
  const px=car.opposite?p.center+p.half*(typeof physicalLane==='function'?physicalLane(z,lane):lane):p.x,h=TRAFFIC_CAR_SCALE*p.q*SpriteLibrary.driveReferenceHeight(I);
- return collisionBounds(frame,px,h);
+ const stable=window.CrimeRushDrivingLab?.mission?.()?CrimeRushVehiclePose.trafficFootprint(car,h):null;
+ return stable?{left:px-stable/2,right:px+stable/2}:collisionBounds(frame,px,h);
 }
+// Reproject the previous physical lane in the CURRENT camera frame, so camera
+// tracking and changing median width cannot fabricate a lateral collision sweep.
+function reprojectPlayerSweep(previous){const p=project(previous.z),px=p.center+p.half*physicalLane(previous.z,previous.lane),half=previous.halfWidth*p.half;return {...previous,px,left:px-half,right:px+half,w:2*half};}
 function playerTrafficPosition(){
  const z=playerDepth(),p=project(z);let px=typeof motorwayPreviewPlayerX==='function'?motorwayPreviewPlayerX(W/2+x*450,z,.13):W/2+x*450;
  const frame=displayedPlayerFrame(px,PLAYER_GROUND_Y),asset=I[frame.name];

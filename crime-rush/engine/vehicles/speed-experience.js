@@ -13,12 +13,12 @@
  function step(state,input,dt,settings=defaults,limit=140,condition=1){
   const c=config(settings),d=clamp(finite(dt,0),0,.05),cap=clamp(finite(limit,140),0,155),health=clamp(finite(condition,1),0,1),n=Math.max(1,Math.ceil(d*240-1e-9)),h=d/n;
   let {kmh:v,throttle,brake,acceleration,pitch,wheelTravel,travel,elapsed}=state,advance=0;
-  const brakeGoal=input.brake?1:0,gasGoal=input.gas&&!input.brake?1:0;
+  const empty=!!input.empty,brakeGoal=input.brake?1:0,gasGoal=input.gas&&!input.brake&&!empty?1:0;if(empty)throttle=0;
   for(let i=0;i<n;i++){
    const g=ease(throttle,gasGoal,c.pedalRate,h/2),b=ease(brake,brakeGoal,c.pedalRate*1.5,h/2);
-   const force=s=> (32*140/180)*c.power*health*g*(1-.55*clamp(s/Math.max(cap,1),0,1))*(1-b)-(65*140/180)*c.brake*b-c.drag*(1.4+.00016*s*s)*(1-g)*(1-b);
+   const force=s=> empty?-(65*140/180)*.35:(32*140/180)*c.power*health*g*(1-.55*clamp(s/Math.max(cap,1),0,1))*(1-b)-(65*140/180)*c.brake*b-c.drag*(1.4+.00016*s*s)*(1-g)*(1-b);
    const a=force(v),mid=clamp(v+a*h/2,0,Math.max(v,cap)),next=clamp(v+force(mid)*h,0,Math.max(v,cap));
-   const nv=v>cap?Math.max(cap,Math.min(next,v-(65*140/180)*h)):Math.min(cap,next);
+   const nv=empty?Math.max(0,v+force(v)*h):v>cap?Math.max(cap,Math.min(next,v-(65*140/180)*h)):Math.min(cap,next);
    const actual=h>0?(nv-v)/h:0,ds=(v+nv)/2*h*WORLD_PER_KMH;
    advance+=ds;travel+=ds;elapsed+=h;wheelTravel=(wheelTravel+wheelHz((v+nv)/2)*20*h)%20;
    acceleration=ease(acceleration,actual,8,h);pitch=ease(pitch,clamp(-acceleration/50*.018,-.018,.018)*c.body,7,h);
