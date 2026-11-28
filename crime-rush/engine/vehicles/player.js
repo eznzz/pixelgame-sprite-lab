@@ -92,6 +92,7 @@ function syncVisualCar(pos,y){
  if(visualRear!==I.rear){visualRear=I.rear;visualYaw=signedYaw(playerFrame(pos,y,steerInput));}
 }
 function displayedPlayerFrame(pos,y){
+ if(window.CrimeRushDrivingLab?.active())return window.CrimeRushDrivingLab.frame();
  syncVisualCar(pos,y);
  const options=[0,...[5,10,15,20].filter(a=>I['rear-'+String(a).padStart(2,'0')]?.naturalWidth)];
  const angle=options.reduce((best,a)=>Math.abs(a-Math.abs(visualYaw))<Math.abs(best-Math.abs(visualYaw))?a:best,0);
@@ -104,6 +105,7 @@ function updateVisualYaw(dt,input){
  visualYaw+=Math.sign(delta)*Math.min(Math.abs(delta),step);
 }
 function updatePlayerSteering(input,dt,velocity){
+ if(window.CrimeRushDrivingLab?.active()){window.CrimeRushDrivingLab.update(input,dt,velocity);return;}
  if(velocity<=0){steerInput=0;steer=0;updateSteeringHold(0,0);updateVisualYaw(dt,0);return;}
  steerInput=input;updateSteeringHold(input,dt);steer+=(input-steer)*Math.min(1,dt*8);
  x=clamp(x+steer*dt*.65*300/450*steeringSpeedMultiplier(input),-.85,.85);
@@ -116,7 +118,7 @@ function drawDriveCar(frame,px,py,h,phase=0,brake=false,fogDepth=0,groundOffset=
  c.save();c.globalAlpha=alpha*(1-mist);vehicleShadow(name,px,py,h,flip,groundOffset);c.restore();
  const velocity=driveVelocity,bob=DriveMotion.bounce(distance,velocity,h,phase);
  const w=asset.width*h/asset.height,dx=Math.round(px-w/2),dy=Math.round(py-h+bob+groundOffset),dw=Math.round(w),dh=Math.round(h);
- c.save();if(flip){c.translate(2*px,0);c.scale(-1,1)}
+ c.save();if(frame.shear){c.translate(px,py);c.transform(1,0,frame.shear,1,0,0);c.translate(-px,-py);}if(flip){c.translate(2*px,0);c.scale(-1,1)}
  if(mist>0){RoadsideObjects.drawFoggedVehicle(c,asset,dx,dy,dw,dh,mist);}
  else{c.drawImage(DriveMotion.roadTone(asset),dx,dy,dw,dh);}
  // Far/small traffic wheels are below useful visual detail. Preserve player animation.
