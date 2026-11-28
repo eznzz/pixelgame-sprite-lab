@@ -7,7 +7,7 @@ function racing(dt=0){
  const ref=SpriteLibrary.driveReferenceHeight(I);
  const twoWay=trafficMode.value==='two';
  const pp=playerTrafficPosition();
- const motorwayLab=lab&&CrimeRushEnvironment.get()==='motorway';const traffic=lab&&!window.CrimeRushRoadLab.trafficEnabled()?[]:motorwayLab?CrimeRushMotorwayTraffic.preview(distance,t,depth).filter(v=>twoWay||!v.opposite):passing.visible(twoWay,pp.z,pp.lane,pp.halfWidth).concat(twoWay?oncoming.cars:[]);
+ const motorwayLab=lab&&CrimeRushEnvironment.get()==='motorway';const traffic=lab&&!window.CrimeRushRoadLab.trafficEnabled()?[]:motorwayLab?CrimeRushMotorwayTraffic.preview(distance,t,depth,!!window.CrimeRushDrivingLab?.active()).filter(v=>twoWay||!v.opposite):passing.visible(twoWay,pp.z,pp.lane,pp.halfWidth).concat(twoWay?oncoming.cars:[]);
  function drawTraffic(v){
  const {lane,z,opposite,model}=v;const renderLane=lane+(v.offset||0);
   const p=opposite||motorwayLab?project(z):passingProjection(z,renderLane),xx=opposite||motorwayLab?p.center+p.half*(motorwayLab?renderLane:(typeof physicalLane==='function'?physicalLane(z,renderLane):renderLane)):p.x,nh=TRAFFIC_CAR_SCALE*p.q*ref;
