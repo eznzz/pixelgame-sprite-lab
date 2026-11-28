@@ -28,11 +28,11 @@ window.DriveWetFX=(()=>{
   while(glassBudget>=1){glassBudget--;if(glass.length<(strength===null?(heavy?24:storm?12:7):24))glass.push({x:random(.025,.975),y:random(.025,.88),r:Math.random()<.7?2:3,age:0,life:random(2.4,4.5),slide:random(.003,.012)});}
   for(let i=spray.length-1;i>=0;i--){const p=spray[i];p.age+=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=42*dt;if(p.age>=p.life)spray.splice(i,1);}
   if(kmh<5||!player?.asset?.naturalWidth){sprayBudget=0;return;}
-  const {asset,x,y,h,flip,offset}=player,w=asset.naturalWidth/asset.naturalHeight*h;
+  const {asset,x,y,h,flip,offset,pose,frame}=player,w=asset.naturalWidth/asset.naturalHeight*h;const axle=pose?.axle;const wheels=()=>axle?[CrimeRushVehiclePerspective.point(frame,pose,x,y,axle[0],axle[1]),CrimeRushVehiclePerspective.point(frame,pose,x,y,axle[2],axle[3])]:contacts(asset).map(u=>({x:x+((flip?1-u:u)-.5)*w,y:y+offset}));
   sprayBudget+=dt*(strength===null?(heavy?30:storm?22:13):30*Math.max(strength,p.wet*.35))*Math.min(1,kmh/65);
-  while(sprayBudget>=1){sprayBudget--;if(spray.length>=(strength!==null||heavy?44:32))continue;for(const u of contacts(asset)){
-   const wheel=x+((flip?1-u:u)-.5)*w,side=wheel<x?-1:1;
-   spray.push({x:wheel+random(-2,2),y:y+offset+random(-2,1),vx:side*random(8,25)*(0.55+kmh/140),vy:random(-24,-7),life:random(.22,.42),age:0,size:Math.random()<.65?1:2});
+  while(sprayBudget>=1){sprayBudget--;if(spray.length>=(strength!==null||heavy?44:32))continue;for(const contact of wheels()){
+   const wheel=contact.x,side=wheel<x?-1:1;
+   spray.push({x:wheel+random(-2,2),y:contact.y+random(-2,1),vx:side*random(8,25)*(0.55+kmh/140),vy:random(-24,-7),life:random(.22,.42),age:0,size:Math.random()<.65?1:2});
   }}
  }
  function drawSpray(c){c.save();for(const p of spray){const fade=1-p.age/p.life;c.globalAlpha=.34*fade;c.fillStyle='#c6d3d5';c.fillRect(Math.round(p.x),Math.round(p.y),p.size,p.size);c.globalAlpha=.15*fade;c.fillStyle='#edf0e9';c.fillRect(Math.round(p.x),Math.round(p.y-1),1,1);}c.restore();}

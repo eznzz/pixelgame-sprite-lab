@@ -68,11 +68,11 @@ const SPUTNIK_BRAKE_LAMPS={
  'rear-30':[[26/413,128/226,41/413,11/226],[161/413,128/226,45/413,11/226]],
  'rear-40':[[25/403,112/209,35/403,10/209],[144/403,112/209,40/403,10/209]]
 };
-function drawBrakeLights(c,name,dx,dy,dw,dh){
+function drawBrakeLights(c,name,dx,dy,dw,dh,calibration){
  const isPobeditel=!!I[name]&&['pobeditel','pobeditel01'].some(id=>I[name]===I['drive:'+id+':'+name]);
  const isSputnik=!!I[name]&&['sputnik','sputnik08'].some(id=>I[name]===I['drive:'+id+':'+name]);
  const lamps=isSputnik?SPUTNIK_BRAKE_LAMPS:isPobeditel?POBEDITEL_BRAKE_LAMPS:BRAKE_LAMPS;
- for(const [u,v,w,h] of lamps[name]||[]){
+ for(const [u,v,w,h] of calibration?.brakes??lamps[name]??[]){
   const x=Math.round(dx+u*dw),y=Math.round(dy+v*dh),a=Math.max(2,Math.round(w*dw)),b=Math.max(2,Math.round(h*dh));
   c.save();c.globalCompositeOperation='screen';c.globalAlpha=.82;c.fillStyle='#ff3029';c.fillRect(x,y,a,b);
   c.globalAlpha=.68;c.fillStyle='#ff9a85';c.fillRect(x+1,y+1,Math.max(1,a-2),Math.max(1,Math.round(b*.30)));
@@ -125,7 +125,7 @@ function drawDriveCar(frame,px,py,h,phase=0,brake=false,fogDepth=0,groundOffset=
  // Far/small traffic wheels are below useful visual detail. Preserve player animation.
  if(!name.startsWith('traffic:')||(dh>=28&&fogDepth<650)){c.save();c.globalAlpha*=1-mist;DriveMotion.draw(c,asset,dx,dy,dw,dh,wheelTravel,wheelSpeed);c.restore();}
  c.filter='none';
- if(brake)drawBrakeLights(c,name,dx,dy,dw,dh);
+ if(brake)drawBrakeLights(c,name,dx,dy,dw,dh,layout?.calibration);
  c.restore();
 }
 // Rear approach uses a bounded screen-space projection; the ordinary road
