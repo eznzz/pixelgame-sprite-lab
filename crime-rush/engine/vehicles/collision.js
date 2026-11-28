@@ -33,8 +33,9 @@ function playerTrafficPosition(){
  const z=playerDepth(),p=project(z),px=typeof motorwayPreviewPlayerX==='function'?motorwayPreviewPlayerX(W/2+x*450,z,.13):W/2+x*450;
  const frame=displayedPlayerFrame(px,PLAYER_GROUND_Y),asset=I[frame.name];
  const base=PLAYER_CAR_SCALE*p.q*SpriteLibrary.driveReferenceHeight(I);
- const h=SpriteLibrary.drivePlayerHeight(I,frame.name,base,frame.visualAngle);
- const bounds=collisionBounds(frame,px,h);
+ const experimental=!!window.CrimeRushDrivingLab?.active(),h=experimental?CrimeRushVehiclePose.playerBase(base):SpriteLibrary.drivePlayerHeight(I,frame.name,base,frame.visualAngle);
+ const calibrated=experimental?CrimeRushVehiclePose.layout(frame,px,PLAYER_GROUND_Y,h):null;
+ const bounds=calibrated?{left:px-calibrated.footprint/2,right:px+calibrated.footprint/2}:collisionBounds(frame,px,h);
  const halfWidth=asset?.naturalWidth?Math.max(px-bounds.left,bounds.right-px)/p.half:.13;
  return {z,lane:typeof logicalLane==='function'?logicalLane(z,(px-p.center)/p.half):(px-p.center)/p.half,halfWidth,px,w:bounds.right-bounds.left,h,...bounds};
 }
