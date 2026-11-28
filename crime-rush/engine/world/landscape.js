@@ -51,10 +51,10 @@ function landscape(queue){
  }
  // Pixel aggregate: fixed world-space samples, perspective-scaled and faded at distance.
  const atmosphere=CrimeRushAtmosphere.get(),asphaltColors=atmosphere?driveAsphaltColors.map(v=>CrimeRushAtmosphere.mix(v,atmosphere.road,.65)):driveAsphaltColors;
- const grainStep=10,grainFirst=Math.floor(distance/grainStep),grainLast=Math.ceil((distance+Math.min(depth,155*(1/.075-1)))/grainStep);
+ const mobileMotorway=variable&&CrimeRushEnvironment.get()==='motorway'&&matchMedia('(any-pointer:coarse), (hover:none)').matches;const grainStep=10,grainFirst=Math.floor(distance/grainStep),grainLast=Math.ceil((distance+Math.min(depth,155*(1/.075-1)))/grainStep);
  c.save();
  for(let i=grainLast;i>=grainFirst;i--){
-  for(let j=0;j<12;j++){
+  for(let j=0;j<(mobileMotorway?6:12);j++){
    const n=i*131+j*19,z=i*grainStep+hash(n+2)*grainStep-distance;
    if(z<0||z>depth)continue;
    const p=project(z),q=p.q;if(q<.075)continue;
@@ -67,7 +67,7 @@ function landscape(queue){
  }
  c.restore();
  if(routeGeometryActive()||sceneryControls.grass.checked)DriveScenery.verge(c,project,distance,depth,W,queue,CrimeRushEnvironment.get()==='forest');
- if(variable)CrimeRushMotorwayPreview.wear(c,project,distance,depth,W);if(!variable||routeGeometryActive())RoadWear.draw(c,project,distance,depth,W);
+ if(variable)CrimeRushMotorwayPreview.wear(c,project,distance,depth,W);if(!variable||routeGeometryActive()&&CrimeRushEnvironment.get()!=='motorway')RoadWear.draw(c,project,distance,depth,W);
  if(atmosphere)CrimeRushAtmosphereDraw.wetRoad(c,project,atmosphere,depth,distance);
  // Junction markings remain above both road surfaces.
  const junctions=DriveCrossroads.visible(distance,FOG_DEPTH);
