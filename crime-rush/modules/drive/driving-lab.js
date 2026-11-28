@@ -1,0 +1,18 @@
+// Opt-in adapter: never activates in missions or ordinary Road Lab.
+(()=>{const q=new URLSearchParams(location.search);if(!q.has('roadLab')||!q.has('drivingLab')||q.has('integration'))return;
+const M=CrimeRushDrivingModel;let mode='alpha',settings=M.config(),state=null,pose={angle:0,rest:0,turn:0,target:0},lastX=null;
+function physical(z,lane){const g=routeRoadGeometry(distance+Math.max(0,z));return motorwayLabActive()?lane+Math.sign(lane)*g.inner:lane;}
+function logical(z,lane){const g=routeRoadGeometry(distance+Math.max(0,z));return motorwayLabActive()?Math.sign(lane)*Math.max(0,Math.abs(lane)-g.inner):lane;}
+function reset(){state=null;lastX=null;pose={angle:visualYaw||0,rest:0,turn:0,target:0};steer=0;steerInput=0;updateSteeringHold(0,0);}
+function configure(input={}){const next=input.mode==='experimental'?'experimental':'alpha';settings=M.config(input);if(mode!==next){if(mode==='experimental')visualYaw=pose.angle;mode=next;reset();}return snapshot();}
+function update(input,dt,velocity){const z=playerDepth(),p=project(z),g=routeRoadGeometry(distance+z),kmh=CrimeRushSpeed.toDisplaySpeed(velocity),two=trafficMode.value==='two',divided=motorwayLabActive()&&g.level>0,half=playerTrafficPosition().halfWidth;
+const min=divided?g.inner+half:two?.02+half:-.97+half,max=divided?g.outer-half:.97-half;
+const lo=logical(z,Math.max(min,(W/2-.85*450-p.center)/p.half)),hi=logical(z,Math.min(max,(W/2+.85*450-p.center)/p.half));
+if(!state||lastX!==null&&Math.abs(x-lastX)>.0001)state={lane:logical(z,(W/2+x*450-p.center)/p.half),lateral:state?.lateral??0};
+state=M.step(state,input,kmh,dt,settings,[Math.min(lo,hi),Math.max(lo,hi)]);x=clamp((p.center+p.half*physical(z,state.lane)-W/2)/450,-.85,.85);lastX=x;
+steerInput=input;steer=state.lateral/settings.maxLateral;pose=M.yaw(pose.angle,state.lateral,M.roadAngle(project,physical,z,state.lane),dt,settings);}
+function frame(){return M.frame(pose.angle,key=>!!I[key]?.naturalWidth,settings);}
+function snapshot(){const selected=mode==='experimental'?frame():displayedPlayerFrame(W/2+x*450,PLAYER_GROUND_Y);return {mode,settings:{...settings},speed:CrimeRushSpeed.toDisplaySpeed(driveVelocity),lane:state?.lane??logical(playerDepth(),(W/2+x*450-project(playerDepth()).center)/project(playerDepth()).half),lateral:state?.lateral??steer*.65*300/project(playerDepth()).half,angle:mode==='experimental'?pose.angle:visualYaw,rest:mode==='experimental'?pose.rest:null,turn:mode==='experimental'?pose.turn:null,target:mode==='experimental'?pose.target:null,sprite:selected.name,flip:selected.flip,shear:selected.shear??0,performance:window.CrimeRushPerformance?.report()};}
+function restart(world=0,kmh=66){distance=Math.max(0,Math.min(30000,Number(world)||0));t=0;prepareRoadFrame();const z=playerDepth(),p=project(z);x=clamp((p.center+p.half*physical(z,.25)-W/2)/450,-.85,.85);driveVelocity=CrimeRushSpeed.toPhysicsSpeed(kmh);syncSpeed();keys={};clearMobileControls();oncoming.reset();passing.reset();visualYaw=signedYaw(playerFrame(W/2+x*450,PLAYER_GROUND_Y,0));reset();}
+window.CrimeRushDrivingLab=Object.freeze({configure,active:()=>mode==='experimental',update,frame,snapshot,restart,setSpeed:kmh=>{driveVelocity=CrimeRushSpeed.toPhysicsSpeed(kmh);syncSpeed();},selectCar:async id=>{const ok=await SpriteLibrary.driveSelect(id);reset();return ok;}});
+})();
