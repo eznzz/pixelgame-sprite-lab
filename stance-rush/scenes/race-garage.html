@@ -74,7 +74,7 @@ function stillScene(){if(document.getElementById('menuScene').value==='promenade
  shadow(mx,my,24*wideScale,4*wideScale);sprite(car,cx,cy,ch,0,'car');sprite(man,mx,my+(pair.man==='tosha'?SpriteLibrary.characterGroundOffset(I[man],mh):0),mh,CrimeRushBreathing.sample(stillTime,.006));
 }
 let leavingGarage=false;
-function frame(now){const dt=Math.min(.05,(now-last)/1000||0);last=now;if(!paused&&!window.CrimeRushOrientation?.blocked())stillTime+=dt;stillScene();if(!leavingGarage)window.FailrunLoading?.ready();requestAnimationFrame(frame);}
+function frame(now){if(document.hidden){last=now;requestAnimationFrame(frame);return;}if(now-last<1000/30-1){requestAnimationFrame(frame);return;}const dt=Math.min(.05,(now-last)/1000||0);last=now;if(!paused&&!window.CrimeRushOrientation?.blocked())stillTime+=dt;stillScene();if(!leavingGarage)window.FailrunLoading?.ready();requestAnimationFrame(frame);}
 $('pause').onclick=()=>{paused=!paused;$('pause').textContent=paused?'Продолжить':'Пауза'};
 let pairIndex=0,pairReady=false;
 try{const saved=Number(sessionStorage.getItem('stance-rush.race.pair'));if(Number.isInteger(saved)&&saved>=0&&saved<RaceConfig.pairs.length)pairIndex=saved;}catch(e){}
