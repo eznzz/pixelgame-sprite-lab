@@ -2,7 +2,7 @@ let lastDriveError='';function reportDriveError(e){if(!CRIME_RUSH_GAME)window.Fa
 function racing(dt=0){
  const layers=[];const queue=(z,draw,priority=0)=>{if(Number.isFinite(z))layers.push({z,draw,priority});};
  const lab=!!window.CrimeRushRoadLab,session=!!window.CrimeRushAtmosphereSession?.enabled();if(lab||session){const p=CrimeRushAtmosphere.tick(lab||!paused?dt:0);if(p)CrimeRushRainAmbience.update(window.PreviewAudio,p.dynamic?p.precipitation:({clear:0,rain:.4,storm:1}[p.rain]||0));else CrimeRushRainAmbience.stop();}
- c.save();try{landscape(queue);}catch(e){reportDriveError(e);}finally{c.restore();}
+ const landStart=performance.now();c.save();try{landscape(queue);}catch(e){reportDriveError(e);}finally{c.restore();window.CrimeRushPerformance?.landscape(performance.now()-landStart);}
  try{if(!window.CrimeRushRoadLab||window.CrimeRushRoadLab.eventsPreview()){RoadObstacles.draw(c,project,distance,I,queue,trafficMode.value==='two');DriveMedkits.draw(c,project,distance,queue);DriveRepairKits.draw(c,project,distance,queue);window.CrimeRushFuelPickups?.draw(c,project,distance,queue);}}catch(e){reportDriveError(e);}
  const ref=SpriteLibrary.driveReferenceHeight(I);
  const twoWay=trafficMode.value==='two';
@@ -32,10 +32,10 @@ function racing(dt=0){
  }
  DriveExhaust.draw(c);c.restore();},4);
  // Painter's algorithm: every upright object shares one world-depth queue.
- layers.sort((a,b)=>b.z-a.z||a.priority-b.priority);
+ const paintStart=performance.now();layers.sort((a,b)=>b.z-a.z||a.priority-b.priority);
  c.save();c.imageSmoothingEnabled=false;
  for(const layer of layers){c.save();try{c.globalAlpha=1;layer.draw();}catch(e){reportDriveError(e);}finally{c.restore();}}
- c.restore();c.globalAlpha=1;
+ c.restore();c.globalAlpha=1;window.CrimeRushPerformance?.painter(performance.now()-paintStart,layers.length);
  
  DriveRain.draw(c,lab&&atmosphere?.dynamic?dt:paused?0:dt,W,H,CrimeRushSpeed.toDisplaySpeed(driveVelocity));
  DriveWetFX.drawGlass(c,W,H);
