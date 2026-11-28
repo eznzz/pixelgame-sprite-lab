@@ -26,3 +26,13 @@ const assert=require('node:assert/strict');const fs=require('node:fs');const vm=
  assert.ok(maxJump<.5,'bounded interpolated width change: '+maxJump);for(const angle of [2.5,7.5,15,-2.5,-7.5,-15])assert.ok(Math.abs(layout(angle-.00001).r.visibleWidth-layout(angle+.00001).r.visibleWidth)<.001);
  const npc=P.select(-12,k=>['traffic:car:front','traffic:car:front-15'].includes(k),{prefix:'traffic:car:',opposite:true});assert.equal(npc.name,'traffic:car:front-15');assert.equal(npc.flip,true);
  console.log('Vehicle perspective: deprojected geometry, depth-dependent bearing, mirrored anchors, continuous dimensions and stable footprint OK', {maxJump});}
+
+{const C=require('../../crime-rush-library/presets/vehicle-calibration.js'),P=require('../engine/vehicles/vehicle-perspective.js');
+ assert.equal(Object.keys(C.profiles).length,5);let n=0;
+ for(const [id,views] of Object.entries(C.profiles)){assert.equal(views.rear.angle,0);let prev=-1;
+ for(const [role,p] of Object.entries(views)){n++;assert.deepEqual(C.validate(p),p);assert.ok(p.angle>prev);prev=p.angle;const [lx,ly,rx,ry]=p.axle;const a={width:990,height:720,measure:{left:.02,right:.98,top:.01,bottom:.99,anchor:.5,width:.96,height:.98},calibration:p};
+ for(const flip of [false,true]){const frame={flip,shear:.03,mix:.5},rect=P.layout(frame,a,a,a,a,432,405,100),l=P.point(frame,rect,432,405,lx,ly),r=P.point(frame,rect,432,405,rx,ry);assert.ok(Math.abs((l.x+r.x)/2-432)<1e-9&&Math.abs((l.y+r.y)/2-405)<1e-9);assert.ok(Math.abs(rect.anchorX-(lx+rx)/2)<1e-12);}
+ assert.ok(role==='rear'||role.startsWith('rear-'),id);}}
+ assert.equal(n,23);assert.throws(()=>C.validate({...C.get('sputnik','rear'),axle:[.7,.95,.2,.95]}));assert.throws(()=>C.validate({...C.get('sputnik','rear'),angle:NaN}));
+ const f=P.select(1,k=>['rear','rear-05','rear-10'].includes(k),{max:20,angleFor:(role,a)=>role==='rear-05'?2:a});assert.equal(f.upper,'rear-05');assert.equal(f.mix,.5);
+ console.log('Individual vehicle calibration: 23 inspected rear frames; mirrored axle midpoint, validation and adjusted key angles OK');}
