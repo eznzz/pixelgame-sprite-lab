@@ -117,13 +117,13 @@ function drawDriveCar(frame,px,py,h,phase=0,brake=false,fogDepth=0,groundOffset=
  const mist=RoadsideObjects.groundMist(fogDepth,project),alpha=c.globalAlpha;
  const layout=frame.calibrated?CrimeRushVehiclePose.layout(frame,px,py,h):null;
  c.save();c.globalAlpha=alpha*(1-mist);if(layout)softCarShadow(px,py,layout.footprint*.52,layout.visibleHeight*.085,!name.startsWith('traffic:'));else vehicleShadow(name,px,py,h,flip,groundOffset);c.restore();
- const velocity=layout?wheelSpeed:driveVelocity,bob=DriveMotion.bounce(layout?wheelTravel:distance,velocity,h,phase);
+ const velocity=layout?wheelSpeed:driveVelocity,bob=frame.playerLoad?0:DriveMotion.bounce(layout?wheelTravel:distance,velocity,h,phase);
  const w=asset.width*h/asset.height,dx=Math.round(layout?.x??(px-w/2)),dy=Math.round(layout?layout.y+bob:py-h+bob+groundOffset),dw=Math.round(layout?.w??w),dh=Math.round(layout?.h??h);
  c.save();if(frame.shear){c.translate(px,py);c.transform(1,0,frame.shear,1,0,0);c.translate(-px,-py);}if(flip){c.translate(2*px,0);c.scale(-1,1)}
  if(mist>0){RoadsideObjects.drawFoggedVehicle(c,asset,dx,dy,dw,dh,mist);}
  else{c.drawImage(DriveMotion.roadTone(asset),dx,dy,dw,dh);}
  // Far/small traffic wheels are below useful visual detail. Preserve player animation.
- if(!name.startsWith('traffic:')||(dh>=28&&fogDepth<650)){c.save();c.globalAlpha*=1-mist;DriveMotion.draw(c,asset,dx,dy,dw,dh,wheelTravel,wheelSpeed);c.restore();}
+ if(!name.startsWith('traffic:')||(dh>=28&&fogDepth<650)){c.save();c.globalAlpha*=1-mist;DriveMotion.draw(c,asset,dx,dy,dw,dh,frame.wheelTravel??wheelTravel,wheelSpeed);c.restore();}
  c.filter='none';
  if(brake)drawBrakeLights(c,name,dx,dy,dw,dh,layout?.calibration);
  c.restore();

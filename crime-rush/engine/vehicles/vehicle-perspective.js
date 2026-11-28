@@ -28,8 +28,8 @@
  function layout(frame,asset,reference,lower,upper,px,py,baseHeight){
   const a=asset.measure,r=reference.measure;const axle=asset.calibration?.axle,anchorX=axle?(axle[0]+axle[2])/2:a.anchor,anchorY=axle?(axle[1]+axle[3])/2:a.bottom;
   const visibleHeight=baseHeight*r.height,aspect=v=>v.measure.width*v.width/(v.measure.height*v.height),visibleWidth=visibleHeight*(aspect(lower)+(aspect(upper)-aspect(lower))*frame.mix);
-  const w=visibleWidth/Math.max(.001,a.width),h=visibleHeight/Math.max(.001,a.height);
-  return {x:px-anchorX*w,y:py-anchorY*h,w,h,visibleWidth,visibleHeight,anchorX,anchorY,footprint:visibleHeight*aspect(reference),axle,calibration:asset.calibration??null};
+  const w=visibleWidth/Math.max(.001,a.width),loadScale=1+(frame.playerLoad?clamp(frame.pitch||0,-.018,.018):0),h=visibleHeight/Math.max(.001,a.height)*loadScale;
+  return {x:px-anchorX*w,y:py-anchorY*h,w,h,visibleWidth,visibleHeight:visibleHeight*loadScale,anchorX,anchorY,footprint:visibleHeight*aspect(reference),axle,calibration:asset.calibration??null};
  }
  function point(frame,rect,px,py,u,v){const x=rect.x+u*rect.w,y=rect.y+v*rect.h;return {x:(frame.flip?2*px-x:x)+(frame.shear||0)*(y-py),y};}
  const api={angles,select,measure,layout,point,roadUnit};if(typeof module!=='undefined')module.exports=api;else root.CrimeRushVehiclePerspective=api;
