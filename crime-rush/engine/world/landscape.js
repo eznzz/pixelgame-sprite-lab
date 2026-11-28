@@ -42,7 +42,7 @@ function landscape(queue){
  DriveCrossroads.draw(c,project,distance,depth,W);
  const zs=driveRoadDepths,points=zs.map(project),variable=routeGeometryActive()||!!window.CrimeRushRoadLab&&CrimeRushEnvironment.get()==='motorway';if(!variable)CrimeRushEnvironment.motorwayShoulder?.(c,project,zs,skyAtmosphere);const roadColor=CrimeRushAtmosphere.get()?.road||'#5a6065';
  // Close the finite projection at its vanishing point for new environments only.
- const far=points[points.length-1];if(!variable&&CrimeRushEnvironment.active())poly(roadColor,[far.center-far.half,far.y],[W/2,hy],[far.center+far.half,far.y]);
+ const far=points[points.length-1];if(!variable&&CrimeRushEnvironment.active())poly(roadColor,[far.center-far.half,far.y],[roadHorizonX(),hy],[far.center+far.half,far.y]);
  if(variable)CrimeRushMotorwayPreview.surface(c,project,zs,distance,roadColor);else{poly(roadColor,...points.map(p=>[p.center-p.half,p.y]),...points.slice().reverse().map(p=>[p.center+p.half,p.y]));CrimeRushMotorwayPreview.serviceSurface(c,project,zs,distance,roadColor);}
  // Stable world-space grain: the road and grass move toward the camera.
  const first=Math.floor(distance/14),last=Math.ceil((distance+depth)/14);
