@@ -122,8 +122,8 @@ window.RoadsideObjects=(()=>{
    window.CrimeRushPerformance?.countRail?.();
    queue(mid,()=>{const tex=fogArt(a,groundMist(Math.max(0,mid),project),'ground'),tw=tex.width,th=tex.height;
     c.save();c.globalAlpha=alpha;c.imageSmoothingEnabled=false;
-    if(Math.abs(p.h-q.h)>.75){c.beginPath();c.moveTo(p.x,p.top);c.lineTo(q.x,q.top);c.lineTo(q.x,q.y);c.lineTo(p.x,p.y);c.closePath();c.clip();}
-    const left=p.x<q.x,A=left?p:q,B=left?q:p;c.transform(B.x-A.x,B.top-A.top,0,Math.max(p.h,q.h),A.x,A.top);
+    const clipped=Math.abs(p.h-q.h)>2;if(clipped){c.beginPath();c.moveTo(p.x,p.top);c.lineTo(q.x,q.top);c.lineTo(q.x,q.y);c.lineTo(p.x,p.y);c.closePath();c.clip();}
+    const left=p.x<q.x,A=left?p:q,B=left?q:p;c.transform(B.x-A.x,B.top-A.top,0,clipped?Math.max(p.h,q.h):(p.h+q.h)/2,A.x,A.top);
     c.drawImage(tex,lo*tw,0,Math.max(.01,(hi-lo)*tw),th,0,0,1,1);c.restore();
    },2);
   };
