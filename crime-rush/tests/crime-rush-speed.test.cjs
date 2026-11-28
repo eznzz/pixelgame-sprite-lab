@@ -50,3 +50,14 @@ const assert=require('node:assert/strict');const fs=require('node:fs');const vm=
  function follow(hz){let x=0;for(let i=0;i<hz;i++)x=C.follow(x,1,1/hz);return x;}assert.ok(Math.abs(follow(30)-follow(60))<1e-12);assert.ok(follow(60)<.22);
  const f=C.camera(3000,C.defaults,0);assert.ok(Math.abs(C.project(f,1e10,864,267.84,432).center-C.vanishing(f,864))<1e-4);
  console.log('Road geometry: '+checks+' cross sections; max width error '+maxWidthError+' px; max derivative error '+maxDerivativeError);}
+
+{const S=require('../engine/vehicles/speed-experience.js'),P=require('../engine/vehicles/vehicle-perspective.js'),T=require('../../crime-rush-library/presets/motorway-traffic.js');
+ assert.ok(Math.abs(S.WORLD_PER_KMH*115-115*180/140*3*1.55)<1e-9);
+ function run(hz){let s=S.reset(),hit100=null,hit140=null,at12,at15,stop=null;for(let i=0;i<20*hz;i++){s=S.step(s,{gas:i<12*hz,brake:i>=15*hz},1/hz);assert.ok(s.kmh>=0&&s.kmh<=140&&Math.abs(s.pitch)<=.018&&s.advance>=0&&s.wheelTravel>=0&&s.wheelTravel<20);if(s.kmh>=100&&hit100===null)hit100=(i+1)/hz;if(s.kmh>=140&&hit140===null)hit140=(i+1)/hz;if(i===12*hz-1)at12=s.kmh;if(i===15*hz-1)at15=s.kmh;if(i>=15*hz&&s.kmh===0&&stop===null)stop=(i+1)/hz;}return {s,hit100,hit140,at12,at15,stop};}
+ const a=run(60),b=run(30);assert.ok(Math.abs(a.s.travel-b.s.travel)<1e-8);assert.equal(a.s.kmh,0);assert.ok(a.hit100>4&&a.hit100<7&&a.hit140>7&&a.hit140<10&&a.at15<a.at12&&a.stop<19);
+ let s=S.reset(115);for(let i=0;i<60;i++)s=S.step(s,{gas:false,brake:false},1/60,{...S.defaults,drag:0});assert.ok(Math.abs(s.travel-S.WORLD_PER_KMH*115)<1e-8);
+ assert.equal(S.lookAhead(160,115),160);assert.ok(S.lookAhead(160,0)<160&&S.lookAhead(160,140)>160);assert.equal(S.wheelHz(0),0);assert.ok(S.wheelHz(155)<=7.5);
+ let limited=S.reset(140);for(let i=0;i<180;i++)limited=S.step(limited,{gas:true,brake:false},1/60,S.defaults,100,.8);assert.equal(limited.kmh,100);
+ const asset={width:100,height:100,measure:{width:.9,height:.9,anchor:.5,bottom:.95},calibration:{axle:[.1,.95,.9,.95]}};const f={playerLoad:true,pitch:.018,mix:0},neutral=P.layout({...f,pitch:0},asset,asset,asset,asset,432,406,100),loaded=P.layout(f,asset,asset,asset,asset,432,406,100);assert.equal(loaded.footprint,neutral.footprint);assert.equal(loaded.visibleWidth,neutral.visibleWidth);assert.ok(Math.abs(loaded.visibleHeight/neutral.visibleHeight-1.018)<1e-12);const anchor=P.point(f,loaded,432,406,.5,.95);assert.ok(Math.abs(anchor.x-432)<1e-12&&Math.abs(anchor.y-406)<1e-12);
+ for(const car of T.preview(14000,3,1800,true)){const index=Number(car.id.split(':')[1]);assert.ok(Math.abs(Math.abs(car.worldSpeed)/S.WORLD_PER_KMH-(85+index*22))<1e-10);}
+ console.log('Speed Experience: reference pace, acceleration, coast/brake, limits, integration, anchored load and motorway speed OK',{distance:a.s.travel,zeroTo100:a.hit100,zeroTo140:a.hit140,stop:a.stop});}
