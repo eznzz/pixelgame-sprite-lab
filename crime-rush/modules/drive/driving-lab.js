@@ -1,5 +1,5 @@
 // Opt-in adapter: never activates in missions or ordinary Road Lab.
-(()=>{const q=new URLSearchParams(location.search);const mission=window.CrimeRushMissionBridge?.beta()===true,lab=q.has('roadLab')&&q.has('drivingLab')&&!q.has('integration');if(!mission&&!lab)return;
+(()=>{const q=new URLSearchParams(location.search);const mission=window.CrimeRushMissionBridge?.beta?.()===true,lab=q.has('roadLab')&&q.has('drivingLab')&&!q.has('integration');if(!mission&&!lab)return;
 const M=CrimeRushDrivingModel,P=CrimeRushVehiclePerspective,C=CrimeRushRoadCurvature,S=CrimeRushSpeedExperience;let speedSettings=S.config(),longitudinal=S.reset(),averageVelocity=0;let cameraSettings=C.config(),cameraLateral=0;let geometry={bearing:0,heading:0};let mode=mission?'experimental':'alpha',settings=M.config(),state=null,pose={angle:0,rest:0,turn:0,target:0},lastX=null;let forcedAngle=null,showOverlay=false;
 function physical(z,lane){const g=routeRoadGeometry(distance+Math.max(0,z));return (motorwayLabActive()||routeGeometryActive())?lane+Math.sign(lane)*g.inner:lane;}
 function logical(z,lane){const g=routeRoadGeometry(distance+Math.max(0,z));return motorwayLabActive()?Math.sign(lane)*Math.max(0,Math.abs(lane)-g.inner):lane;}
