@@ -22,16 +22,16 @@ function racing(dt=0){
  const player=displayedPlayerFrame(pos,groundY),baseHeight=PLAYER_CAR_SCALE*((groundY-hy)/(H-hy))*ref,height=player.calibrated?CrimeRushVehiclePose.playerBase(baseHeight):SpriteLibrary.drivePlayerHeight(I,player.name,baseHeight,player.visualAngle),asset=I[player.name],poseLayout=player.calibrated?CrimeRushVehiclePose.layout(player,pos,groundY,height):null;
  if(!paused&&asset?.naturalWidth)DriveSparks.update(dt,driveVelocity,pos,groundY,height,(poseLayout?.visibleWidth??asset.width/asset.height*height),player.flip,Number(player.name.split('-')[1])||0);
  if(!paused)DriveWind.update(dt,CrimeRushSpeed.toDisplaySpeed(driveVelocity),pos,groundY,asset?.naturalWidth?(poseLayout?.visibleWidth??asset.width/asset.height*height):0,height,document.getElementById("windFx").checked,DriveRain.isStorm()?3:DriveRain.current()==='clear'?.5:1);
- DriveWetFX.update(lab&&atmosphere?.dynamic?dt:paused?0:dt,DriveRain.current(),CrimeRushSpeed.toDisplaySpeed(driveVelocity),W,H,{asset,x:pos,y:groundY,h:height,flip:player.flip,offset:SpriteLibrary.driveGroundOffset(I,player.name,height)});
+ DriveWetFX.update(lab&&atmosphere?.dynamic?dt:paused?0:dt,DriveRain.current(),CrimeRushSpeed.toDisplaySpeed(driveVelocity),W,H,{asset,x:pos,y:groundY,h:height,flip:player.flip,offset:SpriteLibrary.driveGroundOffset(I,player.name,height),pose:poseLayout,frame:player});
  if(atmosphere?.headlights)queue(pp.z,()=>CrimeRushAtmosphereDraw.beam(c,project,renderPlayerLane,pp.z,(player.signedAngle??player.visualAngle*(player.flip?-1:1)),atmosphere),-1);
  queue(pp.z,()=>{c.save();DriveWind.draw(c);DriveSparks.draw(c);DriveWetFX.drawSpray(c);
  c.save();if(impactTime>0)c.translate(Math.round(Math.sin(impactTime*95)*impactDirection*8*impactTime/.36),0);
  drawDriveCar(player,pos,groundY,height,0,braking&&!paused,0,SpriteLibrary.driveGroundOffset(I,player.name,height));c.restore();
  if(!paused&&asset?.naturalWidth){
   const w=asset.width*height/asset.height,bob=DriveMotion.bounce(distance,driveVelocity,height,0);
-  DriveExhaust.update(dt,driveVelocity,drivePressed('ArrowUp')&&!braking&&!document.getElementById('settingsDialog').open,player,pos,Math.round(poseLayout?.x??(pos-w/2)),Math.round(poseLayout?poseLayout.y+bob:groundY-height+bob+SpriteLibrary.driveGroundOffset(I,player.name,height)),Math.round(poseLayout?.w??w),Math.round(poseLayout?.h??height),groundY);
+  DriveExhaust.update(dt,driveVelocity,drivePressed('ArrowUp')&&!braking&&!document.getElementById('settingsDialog').open,player,pos,Math.round(poseLayout?.x??(pos-w/2)),Math.round(poseLayout?poseLayout.y+bob:groundY-height+bob+SpriteLibrary.driveGroundOffset(I,player.name,height)),Math.round(poseLayout?.w??w),Math.round(poseLayout?.h??height),groundY,poseLayout?.calibration);
  }
- DriveExhaust.draw(c);c.restore();},4);
+ DriveExhaust.draw(c);if(poseLayout&&window.CrimeRushDrivingLab?.overlay())CrimeRushVehiclePose.drawOverlay(c,player,poseLayout,pos,groundY);c.restore();},4);
  // Painter's algorithm: every upright object shares one world-depth queue.
  const paintStart=performance.now();layers.sort((a,b)=>b.z-a.z||a.priority-b.priority);
  c.save();c.imageSmoothingEnabled=false;
