@@ -15,7 +15,7 @@ function racing(dt=0){
   c.save();c.globalAlpha=opacity;
   const experimental=window.CrimeRushDrivingLab?.active(),pose=experimental?CrimeRushVehiclePose.trafficFrame(v,z,renderLane,motorwayLab,window.CrimeRushDrivingLab.settings()):null;
   const frame=pose||(opposite?DriveTraffic.frameFor(model,DriveTraffic.perspective(project,z,renderLane),trafficAvailable,true):DriveTraffic.sameDirectionFrame(model,motorwayLab?CrimeRushRoadLayout.relativeLane(distance+z,renderLane):renderLane,trafficAvailable));
-  if(frame){const factor=Math.max(80,Math.min(150,Number(trafficSpeedControl.value)))/100,npcSpeed=experimental&&motorwayLab?Math.abs(v.worldSpeed)/(3*DRIVE_WORLD_SPEED):(experimental?(v.cruiseSpeed??85):85)*factor;const wheelTravel=experimental?t*CrimeRushSpeedExperience.wheelHz(CrimeRushSpeed.toDisplaySpeed(npcSpeed))*20+lane*31:t*npcSpeed*3+lane*31;drawDriveCar(frame,xx,p.y,nh,3+lane*2,false,z,0,npcSpeed,wheelTravel);}c.restore();
+  if(frame){const factor=Math.max(80,Math.min(150,Number(trafficSpeedControl.value)))/100,npcSpeed=experimental&&motorwayLab?Math.abs(v.worldSpeed)/(3*DRIVE_WORLD_SPEED):experimental&&Number.isFinite(v.motionSpeed)?v.motionSpeed:(experimental?(v.cruiseSpeed??85):85)*factor;const wheelTravel=experimental?CrimeRushVehiclePose.wheelPhase(v,npcSpeed,motorwayLab):t*npcSpeed*3+lane*31;drawDriveCar(frame,xx,p.y,nh,3+lane*2,false,z,0,npcSpeed,wheelTravel);}c.restore();
  }
  for(const v of traffic)queue(v.z,()=>drawTraffic(v),3);
  const groundY=PLAYER_GROUND_Y,pos=lab&&!window.CrimeRushDrivingLab?.active()?motorwayPreviewPlayerX(W/2+x*450,pp.z,pp.halfWidth):pp.px,playerProjection=project(pp.z),renderPlayerLane=(pos-playerProjection.center)/playerProjection.half;const atmosphere=CrimeRushAtmosphere.get();
